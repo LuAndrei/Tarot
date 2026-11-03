@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot Místico & Oráculo Interactivo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#FFF7D6',
+                            300: '#F5E080',
+                            400: '#E6C653',
+                            500: '#D4AF37',
+                            600: '#AA8821',
+                            700: '#806313',
+                        },
+                        night: {
+                            900: '#060713',
+                            800: '#0B0D21',
+                            700: '#121636',
+                            600: '#1C224E',
+                        },
+                        mystic: {
+                            purple: '#2A1B4E',
+                            deepPurple: '#180E2E',
+                            wine: '#3D1528',
+                        }
+                    },
+                    fontFamily: {
+                        title: ['"Cinzel Decorative"', 'serif'],
+                        heading: ['"Cinzel"', 'serif'],
+                        body: ['"Cormorant Garamond"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Personalización de scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060713;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 4px;
+        }
+
+        /* Efecto de Fondo Cósmico */
+        body {
+            background-color: #060713;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(42, 27, 78, 0.6) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(24, 14, 46, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 20% 70%, rgba(61, 21, 40, 0.4) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: #E2E8F0;
+        }
+
+        /* Destellos Estelares */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image: radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                              radial-gradient(2px 2px at 40px 70px, #ffd700, rgba(0,0,0,0)),
+                              radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+                              radial-gradient(2px 2px at 160px 120px, #ffd700, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.3;
+            animation: starsTwinkle 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes starsTwinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 0.45; transform: scale(1.02); }
+        }
+
+        /* 3D Flip Card Styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+        }
+
+        /* Inversión visual para carta dada vuelta en posición invertida */
+        .reversed-card-img {
+            transform: rotate(180deg);
+        }
+
+        /* Animación de brillo mágico */
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        
+        .gold-glow-hover:hover {
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(212, 175, 55, 0.3);
+            border-color: #F5E080;
+        }
+
+        /* Animación de Reparto */
+        @keyframes dealCard {
+            0% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.5) rotate(-10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .animate-deal {
+            animation: dealCard 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.27) forwards;
+        }
+
+        /* Animación de Barajado */
+        @keyframes shuffleLeft {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(-40px) rotate(-15deg); }
+        }
+        @keyframes shuffleRight {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(40px) rotate(15deg); }
+        }
+
+        .shuffling-left { animation: shuffleLeft 0.4s ease-in-out infinite; }
+        .shuffling-right { animation: shuffleRight 0.4s ease-in-out infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden font-body relative">
+
+    <!-- Capa de Estrellas -->
+    <div class="stars"></div>
+
+    <!-- Contenido Principal -->
+    <div class="relative z-10 flex-grow flex flex-col">
+
+        <!-- HEADER -->
+        <header class="py-6 px-4 text-center border-b border-gold-500/20 bg-night-900/60 backdrop-blur-md sticky top-0 z-50">
+            <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="resetApp()">
+                    <svg class="w-8 h-8 text-gold-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <h1 class="font-title text-xl sm:text-2xl font-bold tracking-widest text-gold-400 uppercase">Tarot Místico</h1>
+                </div>
+
+                <div class="flex items-center space-x-4 text-sm font-heading">
+                    <button id="soundToggle" onclick="toggleSound()" class="flex items-center space-x-1 text-gold-300/80 hover:text-gold-300 transition-colors bg-night-800/80 px-3 py-1.5 rounded-full border border-gold-500/30">
+                        <span id="soundIcon">🔊</span>
+                        <span id="soundLabel" class="text-xs">Sonido: ON</span>
+                    </button>
+                    <button onclick="resetApp()" class="text-gold-300/80 hover:text-gold-300 transition-colors bg-night-800/80 px-3 py-1.5 rounded-full border border-gold-500/30 text-xs">
+                        ↺ Nueva Tirada
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTAINER -->
+        <main class="max-w-6xl mx-auto px-4 py-8 flex-grow flex flex-col justify-center w-full">
+
+            <!-- VISTA 1: SELECCIÓN DE TIRADA -->
+            <section id="selectionScreen" class="flex flex-col items-center text-center space-y-8 my-auto">
+                <div class="space-y-3 max-w-2xl">
+                    <span class="text-gold-400 font-heading tracking-widest text-sm uppercase">Revela tu Destino</span>
+                    <h2 class="font-title text-3xl sm:text-5xl font-bold text-white drop-shadow-lg">Selecciona tu Tirada</h2>
+                    <p class="text-lg text-slate-300 font-light">Concentra tu energía en la pregunta o situación que deseas consultar antes de elegir las cartas.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mt-4">
+                    <!-- Tirada 1 Carta -->
+                    <div onclick="startSpread(1)" class="group cursor-pointer bg-night-800/60 backdrop-blur-md p-6 rounded-2xl border border-gold-500/30 gold-glow-hover transition-all duration-300 flex flex-col items-center justify-between space-y-4 hover:-translate-y-1">
+                        <div class="w-16 h-16 rounded-full bg-mystic-purple/50 border border-gold-400/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="font-title text-2xl text-gold-400">I</span>
+                        </div>
+                        <div>
+                            <h3 class="font-heading text-xl text-gold-300 font-semibold mb-2">Carta del Día</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">Orientación rápida, consejo inmediato o energía general para tu momento actual.</p>
+                        </div>
+                        <span class="text-xs font-heading tracking-wider text-gold-400 uppercase group-hover:underline">Elegir Tirada →</span>
+                    </div>
+
+                    <!-- Tirada 3 Cartas -->
+                    <div onclick="startSpread(3)" class="group cursor-pointer bg-night-800/60 backdrop-blur-md p-6 rounded-2xl border border-gold-500/30 gold-glow-hover transition-all duration-300 flex flex-col items-center justify-between space-y-4 hover:-translate-y-1">
+                        <div class="w-16 h-16 rounded-full bg-mystic-purple/50 border border-gold-400/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="font-title text-2xl text-gold-400">III</span>
+                        </div>
+                        <div>
+                            <h3 class="font-heading text-xl text-gold-300 font-semibold mb-2">Pasado, Presente y Futuro</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">Una visión lineal temporal para comprender el origen, estado y evolución de tu inquietud.</p>
+                        </div>
+                        <span class="text-xs font-heading tracking-wider text-gold-400 uppercase group-hover:underline">Elegir Tirada →</span>
+                    </div>
+
+                    <!-- Tirada 5 Cartas -->
+                    <div onclick="startSpread(5)" class="group cursor-pointer bg-night-800/60 backdrop-blur-md p-6 rounded-2xl border border-gold-500/30 gold-glow-hover transition-all duration-300 flex flex-col items-center justify-between space-y-4 hover:-translate-y-1">
+                        <div class="w-16 h-16 rounded-full bg-mystic-purple/50 border border-gold-400/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="font-title text-2xl text-gold-400">V</span>
+                        </div>
+                        <div>
+                            <h3 class="font-heading text-xl text-gold-300 font-semibold mb-2">Cruz del Destino</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">Análisis profundo: Situación, Desafío, Raíz pasada, Futuro cercano y Resultado final.</p>
+                        </div>
+                        <span class="text-xs font-heading tracking-wider text-gold-400 uppercase group-hover:underline">Elegir Tirada →</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA 2: TAPETE DE LECTURA E INTERACCIÓN -->
+            <section id="readingScreen" class="hidden flex-col items-center space-y-8 w-full">
+                
+                <!-- Info de Tirada y Mazo -->
+                <div class="text-center space-y-2">
+                    <h2 id="spreadTitle" class="font-title text-2xl sm:text-3xl font-bold text-gold-400"></h2>
+                    <p id="spreadInstruction" class="text-slate-300 font-body text-lg">Haz clic en el mazo para barajar y repartir las cartas.</p>
+                </div>
+
+                <!-- Mazo de Origen / Barajado -->
+                <div id="deckContainer" class="flex flex-col items-center space-y-4 my-2">
+                    <div id="deck" onclick="shuffleAndDeal()" class="relative w-32 h-52 sm:w-36 sm:h-56 cursor-pointer group">
+                        <!-- Cartas apiladas simulando el mazo -->
+                        <div class="absolute inset-0 bg-night-700 rounded-xl border-2 border-gold-500/50 shadow-2xl transform translate-x-2 translate-y-2"></div>
+                        <div class="absolute inset-0 bg-night-800 rounded-xl border-2 border-gold-500/70 shadow-2xl transform translate-x-1 translate-y-1"></div>
+                        <!-- Carta Superior -->
+                        <div id="topDeckCard" class="absolute inset-0 bg-gradient-to-br from-mystic-purple to-night-900 rounded-xl border-2 border-gold-400 shadow-2xl flex items-center justify-center gold-glow-hover transition-transform duration-300 group-hover:scale-105">
+                            <div class="w-full h-full p-2">
+                                <div class="w-full h-full border border-gold-500/40 rounded-lg flex items-center justify-center bg-night-900/40">
+                                    <svg class="w-12 h-12 text-gold-400 opacity-80 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="9" stroke-width="1.5"/>
+                                        <path stroke-width="1.5" d="M12 3v18M3 12h18M5.636 5.636l12.728 12.728M5.636 18.364L18.364 5.636"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="dealBtn" onclick="shuffleAndDeal()" class="font-heading text-xs tracking-widest uppercase bg-gold-500 hover:bg-gold-400 text-night-900 font-bold px-6 py-2.5 rounded-full shadow-lg transition-all transform hover:scale-105">
+                        Barajar y Repartir
+                    </button>
+                </div>
+
+                <!-- Tapete donde se ubican las cartas repartidas -->
+                <div id="tabletop" class="w-full flex flex-wrap justify-center items-center gap-4 sm:gap-6 min-h-[260px] py-4">
+                    <!-- Se generan dinámicamente -->
+                </div>
+
+                <!-- VISTA 3: INTERPRETACIÓN COMPLETA -->
+                <div id="interpretationSection" class="hidden w-full max-w-4xl bg-night-800/80 backdrop-blur-md rounded-2xl border border-gold-500/30 p-6 sm:p-8 space-y-6 animate-fade-in shadow-2xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold-500/20 pb-4 gap-4">
+                        <div>
+                            <span class="text-xs font-heading text-gold-400 uppercase tracking-widest">Sabiduría Revelada</span>
+                            <h3 class="font-title text-2xl text-white font-bold">Interpretación de la Lectura</h3>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="copyReading()" class="flex items-center space-x-2 text-xs font-heading bg-night-700 hover:bg-night-600 border border-gold-500/40 text-gold-300 px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                <span>Guardar / Copiar</span>
+                            </button>
+                            <button onclick="resetApp()" class="flex items-center space-x-2 text-xs font-heading bg-gold-500 hover:bg-gold-400 text-night-900 font-bold px-4 py-2 rounded-lg transition-colors">
+                                <span>Nueva Lectura</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Síntesis General -->
+                    <div class="prose prose-invert max-w-none space-y-4">
+                        <div id="synthesisContent" class="text-slate-200 text-base sm:text-lg leading-relaxed font-body italic border-l-2 border-gold-400 pl-4 py-1">
+                            <!-- Inserción dinámica -->
+                        </div>
+
+                        <!-- Detalles Carta por Carta -->
+                        <div id="cardsDetailList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <!-- Inserción dinámica -->
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="py-4 text-center text-xs text-slate-300 border-t border-gold-500/10 bg-night-900/40">
+            <p class="font-heading tracking-widest text-gold-400/60">El Tarot es un espejo del alma y una guía para la reflexión personal.</p>
+        </footer>
+    </div>
+
+    <!-- NOTIFICACIÓN TOAST -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-gold-500 text-night-900 px-4 py-3 rounded-xl shadow-2xl font-heading text-xs font-bold transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4 z-50">
+        Lectura copiada al portapapeles ✨
+    </div>
+
+    <!-- JAVASCRIPT DEL JUEGO -->
+    <script>
+        /* ==========================================
+           DATOS DE LOS ARCANOS MAYORES (TAROT)
+           ========================================== */
+        const TAROT_DECK = [
+            {
+                id: 0,
+                number: "0",
+                roman: "0",
+                name: "El Loco",
+                upright: "Nuevos comienzos, inocencia, libertad, fe en el universo, aventuras espontáneas.",
+                reversed: "Imprudencia, riesgos innecesarios, ingenuidad, estancamiento por miedo a actuar.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M50 20 L65 50 L50 40 L35 50 Z" fill="#D4AF37"/><circle cx="50" cy="65" r="15" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M50 80 Q65 100 50 120 Q35 100 50 80" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="50" cy="30" r="3" fill="#FFF7D6"/></svg>`
+            },
+            {
+                id: 1,
+                number: "I",
+                roman: "I",
+                name: "El Mago",
+                upright: "Manifestación, recursos, poder personal, habilidad, determinación para lograr metas.",
+                reversed: "Talento no aprovechado, manipulación, falta de enfoque, ilusiones engañosas.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M30 40 Q50 25 70 40 Q50 55 30 40" fill="none" stroke="#D4AF37" stroke-width="2"/><line x1="50" y1="55" x2="50" y2="110" stroke="#D4AF37" stroke-width="3"/><circle cx="50" cy="65" r="8" fill="none" stroke="#D4AF37"/><polygon points="50,20 53,28 61,28 54,33 57,41 50,36 43,41 46,33 39,28 47,28" fill="#F5E080"/></svg>`
+            },
+            {
+                id: 2,
+                number: "II",
+                roman: "II",
+                name: "La Sacerdotisa",
+                upright: "Intuición, misterio, voz interior, conocimiento sagrado, mente subconsciente.",
+                reversed: "Desconexión intuitiva, secretos dañinos, superficialidad, reprimir emociones.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M35 30 A 15 15 0 0 0 65 30 A 15 15 0 0 0 35 30" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="50" cy="70" r="20" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M30 110 L70 110 M40 100 L60 100" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 3,
+                number: "III",
+                roman: "III",
+                name: "La Emperatriz",
+                upright: "Abundancia, fertilidad, creatividad, naturaleza, nutrición y belleza.",
+                reversed: "Dependencia, bloqueo creativo, falta de autocuidado, estancamiento.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><polygon points="50,25 62,60 95,60 68,80 78,115 50,92 22,115 32,80 5,60 38,60" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="50" cy="70" r="10" fill="#D4AF37"/></svg>`
+            },
+            {
+                id: 4,
+                number: "IV",
+                roman: "IV",
+                name: "El Emperador",
+                upright: "Autoridad, estructura, estabilidad, liderazgo, disciplina y protección.",
+                reversed: "Tiranía, rigidez, falta de control, abuso de poder o falta de disciplina.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><rect x="30" y="30" width="40" height="40" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M50 70 L50 120 M35 90 L65 90" stroke="#D4AF37" stroke-width="3"/><polygon points="50,15 60,28 40,28" fill="#D4AF37"/></svg>`
+            },
+            {
+                id: 5,
+                number: "V",
+                roman: "V",
+                name: "El Sumo Sacerdote",
+                upright: "Tradición, guía espiritual, aprendizaje, valores compartidos, sabiduría ancestral.",
+                reversed: "Rebeldía, dogmatismo, desacuerdo con creencias tradicionales, libertad de pensamiento.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M50 25 L50 115 M30 45 L70 45 M35 65 L65 65 M40 85 L60 85" stroke="#D4AF37" stroke-width="2.5"/><circle cx="50" cy="25" r="4" fill="#D4AF37"/></svg>`
+            },
+            {
+                id: 6,
+                number: "VI",
+                roman: "VI",
+                name: "Los Enamorados",
+                upright: "Amor, armonía, relaciones, decisiones éticas, valores alineados.",
+                reversed: "Desalineación de valores, conflicto de pareja, decisiones apresuradas, desequilibrio.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M50 45 Q35 25 25 45 Q20 65 50 95 Q80 65 75 45 Q65 25 50 45 Z" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="38" cy="45" r="3" fill="#D4AF37"/><circle cx="62" cy="45" r="3" fill="#D4AF37"/></svg>`
+            },
+            {
+                id: 7,
+                number: "VII",
+                roman: "VII",
+                name: "El Carro",
+                upright: "Control, voluntad, victoria, determinación, superar obstáculos con enfoque.",
+                reversed: "Falta de dirección, agresividad fuera de control, bloqueo, perder el rumbo.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><rect x="25" y="50" width="50" height="40" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="35" cy="100" r="10" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="65" cy="100" r="10" fill="none" stroke="#D4AF37" stroke-width="2"/><polygon points="50,25 65,45 35,45" fill="none" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 8,
+                number: "VIII",
+                roman: "VIII",
+                name: "La Fuerza",
+                upright: "Valentía, compasión, paciencia, autocontrol, fuerza interior sobre la brutalidad.",
+                reversed: "Duda personal, debilidad, impulsividad, falta de paciencia o baja autoestima.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M35 45 Q50 30 65 45 Q50 60 35 45 Z M35 45 Q20 45 35 45" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M35 75 C 20 60, 20 90, 50 90 C 80 90, 80 60, 65 75" fill="none" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 9,
+                number: "IX",
+                roman: "IX",
+                name: "El Ermitaño",
+                upright: "Introspección, búsqueda de la verdad, guía interior, soledad constructiva, reflexión.",
+                reversed: "Aislamiento excesivo, soledad dañina, rechazar consejos útiles, paranoia.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><polygon points="50,30 55,45 70,45 58,55 62,70 50,60 38,70 42,55 30,45 45,45" fill="none" stroke="#D4AF37" stroke-width="2"/><line x1="50" y1="75" x2="50" y2="120" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 10,
+                number: "X",
+                roman: "X",
+                name: "La Rueda de la Fortuna",
+                upright: "Cambio, ciclos de la vida, destino, karma, giros afortunados de los acontecimientos.",
+                reversed: "Mala suerte, resistencia al cambio, interrupción de ciclos, falta de control.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><circle cx="50" cy="70" r="30" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="50" cy="70" r="10" fill="none" stroke="#D4AF37" stroke-width="1.5"/><path d="M50 40 L50 100 M20 70 L80 70" stroke="#D4AF37" stroke-width="1.5"/></svg>`
+            },
+            {
+                id: 11,
+                number: "XI",
+                roman: "XI",
+                name: "La Justicia",
+                upright: "Equilibrio, verdad, causa y efecto, justicia, responsabilidad y claridad mental.",
+                reversed: "Injusticia, falta de honestidad, rechazo de responsabilidad, parcialidad.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><line x1="25" y1="50" x2="75" y2="50" stroke="#D4AF37" stroke-width="2"/><line x1="50" y1="30" x2="50" y2="110" stroke="#D4AF37" stroke-width="2"/><path d="M25 50 L20 75 Q25 80 30 75 Z M75 50 L70 75 Q75 80 80 75 Z" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>`
+            },
+            {
+                id: 12,
+                number: "XII",
+                roman: "XII",
+                name: "El Colgado",
+                upright: "Pausa, rendición, nueva perspectiva, dejar ir, sacrificio consciente.",
+                reversed: "Resistencia al cambio, estancamiento innecesario, postergación, martirio.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><line x1="30" y1="25" x2="70" y2="25" stroke="#D4AF37" stroke-width="2"/><line x1="50" y1="25" x2="50" y2="105" stroke="#D4AF37" stroke-width="2"/><path d="M35 65 L65 65 L50 95 Z" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>`
+            },
+            {
+                id: 13,
+                number: "XIII",
+                roman: "XIII",
+                name: "La Muerte",
+                upright: "Finales, transformación, transición, dejar ir lo viejo para recibir lo nuevo.",
+                reversed: "Miedo al cambio, aferrarse al pasado, estancamiento forzado, resistencia.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M50 30 L65 50 L55 50 L55 110 L45 110 L45 50 L35 50 Z" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M30 65 Q50 40 70 65" fill="none" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 14,
+                number: "XIV",
+                roman: "XIV",
+                name: "La Templanza",
+                upright: "Moderación, paciencia, propósito, equilibrio, armonía y alquimia personal.",
+                reversed: "Desequilibrio, exceso, impaciencia, falta de armonía interior.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><rect x="30" y="40" width="15" height="25" rx="3" fill="none" stroke="#D4AF37" stroke-width="2"/><rect x="55" y="75" width="15" height="25" rx="3" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M45 52 Q60 55 62 75" stroke="#D4AF37" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/></svg>`
+            },
+            {
+                id: 15,
+                number: "XV",
+                roman: "XV",
+                name: "El Diablo",
+                upright: "Sombra personal, apegos, adicciones, ilusión de atadura, materialismo.",
+                reversed: "Liberación, romper cadenas, recuperar el control, superar miedos profundos.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><polygon points="50,30 60,50 40,50" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M30 75 Q50 60 70 75 Q50 110 30 75 Z" fill="none" stroke="#D4AF37" stroke-width="2"/><line x1="50" y1="50" x2="50" y2="70" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 16,
+                number: "XVI",
+                roman: "XVI",
+                name: "La Torre",
+                upright: "Revelación repentina, cambio drástico, despertar, destrucción de falsas estructuras.",
+                reversed: "Evitar el desastre, miedo al colapso, retrasar lo inevitable.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><polygon points="40,30 60,30 65,110 35,110" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M50 20 L45 38 L55 38 L48 55 L58 55 L42 80" stroke="#D4AF37" stroke-width="2" fill="none"/></svg>`
+            },
+            {
+                id: 17,
+                number: "XVII",
+                roman: "XVII",
+                name: "La Estrella",
+                upright: "Esperanza, fe, inspiración, sanación espiritual, renovación y serenidad.",
+                reversed: "Desesperanza, falta de fe, desánimo, desconexión de la creatividad.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><polygon points="50,20 58,40 80,40 62,52 68,75 50,60 32,75 38,52 20,40 42,40" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="50" cy="48" r="6" fill="#F5E080"/></svg>`
+            },
+            {
+                id: 18,
+                number: "XVIII",
+                roman: "XVIII",
+                name: "La Luna",
+                upright: "Ilusión, intuición, miedos subconscientes, misterio, sueños profundos.",
+                reversed: "Liberación de la confusión, velos que se caen, superar el engaño o la ansiedad.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M40 30 A 30 30 0 1 0 70 85 A 35 35 0 1 1 40 30 Z" fill="none" stroke="#D4AF37" stroke-width="2"/><circle cx="70" cy="45" r="2" fill="#D4AF37"/><circle cx="75" cy="60" r="3" fill="#D4AF37"/></svg>`
+            },
+            {
+                id: 19,
+                number: "XIX",
+                roman: "XIX",
+                name: "El Sol",
+                upright: "Éxito, vitalidad, alegría, claridad, entusiasmo y realización personal.",
+                reversed: "Tristeza temporal, desánimo pasajero, optimismo exagerado o nublado.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><circle cx="50" cy="65" r="22" fill="none" stroke="#D4AF37" stroke-width="2"/><path d="M50 30 L50 38 M50 92 L50 100 M15 65 L23 65 M77 65 L85 65 M25 40 L31 46 M69 84 L75 90 M25 90 L31 84 M69 46 L75 40" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 20,
+                number: "XX",
+                roman: "XX",
+                name: "El Juicio",
+                upright: "Renacimiento, llamada interior, absolución, evaluación consciente, perdón.",
+                reversed: "Duda de uno mismo, autocrítica severa, ignorar la llamada al cambio.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><path d="M30 45 L50 65 L70 45 M50 65 L50 105" stroke="#D4AF37" stroke-width="2" fill="none"/><circle cx="50" cy="35" r="10" fill="none" stroke="#D4AF37" stroke-width="2"/></svg>`
+            },
+            {
+                id: 21,
+                number: "XXI",
+                roman: "XXI",
+                name: "El Mundo",
+                upright: "Plenitud, logro, viajes, cierre exitoso de ciclo, integración total.",
+                reversed: "Inconclusión, buscar atajos, falta de cierre, aplazar el éxito final.",
+                svg: `<svg viewBox="0 0 100 140" class="w-full h-full"><ellipse cx="50" cy="70" rx="30" ry="40" fill="none" stroke="#D4AF37" stroke-width="2"/><polygon points="50,45 60,85 40,85" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>`
+            }
+        ];
+
+        /* CONFIGURACIÓN DE TIRADAS */
+        const SPREAD_CONFIGS = {
+            1: {
+                title: "Tirada de 1 Carta: Consejo del Día",
+                positions: ["Mensaje Guía"]
+            },
+            3: {
+                title: "Tirada de 3 Cartas: Línea Temporal",
+                positions: ["Pasado (Origen)", "Presente (Estado Actual)", "Futuro (Tendencia)"]
+            },
+            5: {
+                title: "Tirada de 5 Cartas: Cruz del Destino",
+                positions: ["La Situación", "El Desafío / Obstáculo", "La Raíz / Pasado", "El Futuro Cercano", "El Resultado Final"]
+            }
+        };
+
+        /* ESTADO GLOBAL */
+        let currentSpreadType = 3;
+        let drawnCards = [];
+        let revealedCardsCount = 0;
+        let isAudioEnabled = true;
+        let audioCtx = null;
+
+        /* WEB AUDIO SYNTHESIZER (Efectos de Sonido Sutiles) */
+        function playMysticSound(type) {
+            if (!isAudioEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'shuffle') {
+                    // Sonido suave de ráfaga
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'flip') {
+                    // Campanilla celestial
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.4); // C6
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'complete') {
+                    // Acorde místico final
+                    [261.63, 329.63, 392.00, 523.25].forEach((freq, index) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'sine';
+                        o.frequency.value = freq;
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        g.gain.setValueAtTime(0.04, now + (index * 0.08));
+                        g.gain.exponentialRampToValueAtTime(0.001, now + 1.2 + (index * 0.08));
+                        o.start(now + (index * 0.08));
+                        o.stop(now + 1.2 + (index * 0.08));
+                    });
+                }
+            } catch (e) {
+                console.log("Audio no iniciado por políticas del navegador");
+            }
+        }
+
+        function toggleSound() {
+            isAudioEnabled = !isAudioEnabled;
+            document.getElementById('soundIcon').innerText = isAudioEnabled ? '🔊' : '🔇';
+            document.getElementById('soundLabel').innerText = isAudioEnabled ? 'Sonido: ON' : 'Sonido: OFF';
+        }
+
+        /* INICIALIZACIÓN DE TIRADA */
+        function startSpread(cardCount) {
+            currentSpreadType = cardCount;
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('readingScreen').classList.remove('hidden');
+            document.getElementById('readingScreen').classList.add('flex');
+            
+            const config = SPREAD_CONFIGS[cardCount];
+            document.getElementById('spreadTitle').innerText = config.title;
+            document.getElementById('spreadInstruction').innerText = "Haz clic en el mazo para barajar y desplegar tus cartas.";
+            
+            // Ocultar zonas no listas
+            document.getElementById('tabletop').innerHTML = '';
+            document.getElementById('interpretationSection').classList.add('hidden');
+            document.getElementById('deckContainer').classList.remove('hidden');
+            
+            drawnCards = [];
+            revealedCardsCount = 0;
+        }
+
+        /* BARAJAR Y REPARTIR */
+        function shuffleAndDeal() {
+            playMysticSound('shuffle');
+            
+            const deckElem = document.getElementById('deck');
+            deckElem.classList.add('shuffling-left');
+            
+            const dealBtn = document.getElementById('dealBtn');
+            dealBtn.disabled = true;
+            dealBtn.classList.add('opacity-50');
+
+            setTimeout(() => {
+                deckElem.classList.remove('shuffling-left');
+                
+                // Seleccionar N cartas aleatorias únicas
+                const shuffled = [...TAROT_DECK].sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, currentSpreadType);
+                
+                // Asignar posición y orientación aleatoria (normal o invertida)
+                drawnCards = selected.map((card, idx) => {
+                    return {
+                        ...card,
+                        positionName: SPREAD_CONFIGS[currentSpreadType].positions[idx],
+                        isReversed: Math.random() < 0.3, // 30% probabilidad de invertida
+                        isFlipped: false
+                    };
+                });
+
+                // Transición al tapete
+                document.getElementById('deckContainer').classList.add('hidden');
+                document.getElementById('spreadInstruction').innerText = "Haz clic en cada carta para revelarla.";
+                
+                renderTabletop();
+            }, 600);
+        }
+
+        /* DIBUJAR TAPETE DE CARTAS */
+        function renderTabletop() {
+            const tabletop = document.getElementById('tabletop');
+            tabletop.innerHTML = '';
+
+            drawnCards.forEach((card, index) => {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'flex flex-col items-center space-y-2 animate-deal';
+                cardWrapper.style.animationDelay = `${index * 0.15}s`;
+
+                cardWrapper.innerHTML = `
+                    <span class="text-xs font-heading text-gold-400/90 tracking-wider font-semibold text-center max-w-[130px] sm:max-w-[150px] truncate">
+                        ${card.positionName}
+                    </span>
+                    
+                    <div id="card-container-${index}" 
+                         onclick="flipCard(${index})" 
+                         class="card-container perspective-1000 w-32 h-52 sm:w-40 sm:h-64 cursor-pointer group">
+                        
+                        <div class="card-inner">
+                            <!-- REVERSO DE LA CARTA (BOCA ABAJO) -->
+                            <div class="card-back bg-gradient-to-br from-mystic-purple to-night-900 border-2 border-gold-500/60 flex items-center justify-center p-2 gold-glow-hover">
+                                <div class="w-full h-full border border-gold-500/30 rounded-lg flex flex-col items-center justify-center bg-night-900/50 p-2">
+                                    <div class="w-10 h-10 rounded-full border border-gold-400/50 flex items-center justify-center mb-1">
+                                        <span class="font-title text-gold-400 text-sm">🔮</span>
+                                    </div>
+                                    <span class="font-heading text-[10px] text-gold-300/60 uppercase tracking-widest">Revelar</span>
+                                </div>
+                            </div>
+
+                            <!-- FRENTE DE LA CARTA (REVELADA) -->
+                            <div class="card-front bg-night-800 border-2 border-gold-400 p-2.5 flex flex-col justify-between gold-glow">
+                                <div class="flex justify-between items-center text-[11px] font-heading text-gold-400 border-b border-gold-500/20 pb-1">
+                                    <span>${card.roman}</span>
+                                    <span class="text-[9px] text-gold-300/70">${card.isReversed ? '(Invertida)' : ''}</span>
+                                </div>
+                                
+                                <div class="my-auto py-1 flex items-center justify-center h-28 sm:h-36 ${card.isReversed ? 'reversed-card-img' : ''}">
+                                    ${card.svg}
+                                </div>
+
+                                <div class="text-center border-t border-gold-500/20 pt-1">
+                                    <h4 class="font-heading text-xs sm:text-sm font-bold text-gold-300 truncate">${card.name}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                tabletop.appendChild(cardWrapper);
+            });
+        }
+
+        /* VOLTEAR CARTA */
+        function flipCard(index) {
+            if (drawnCards[index].isFlipped) return;
+
+            drawnCards[index].isFlipped = true;
+            revealedCardsCount++;
+            
+            playMysticSound('flip');
+
+            const container = document.getElementById(`card-container-${index}`);
+            container.classList.add('flipped');
+
+            // Si se revelaron todas las cartas, generar interpretación
+            if (revealedCardsCount === drawnCards.length) {
+                setTimeout(() => {
+                    playMysticSound('complete');
+                    generateInterpretation();
+                }, 700);
+            }
+        }
+
+        /* GENERAR INTERPRETACIÓN COMPLETA */
+        function generateInterpretation() {
+            const section = document.getElementById('interpretationSection');
+            const synthesisEl = document.getElementById('synthesisContent');
+            const detailsListEl = document.getElementById('cardsDetailList');
+
+            // Crear Síntesis Narrativa según las cartas
+            let narrative = "";
+            if (currentSpreadType === 1) {
+                const c = drawnCards[0];
+                narrative = `El Universo te presenta hoy a <strong>${c.name}</strong> ${c.isReversed ? 'en posición invertida' : ''} como tu guía principal. ` +
+                    `Esta energía sugiere prestar atención a: <em>"${c.isReversed ? c.reversed : c.upright}"</em>. Tómalo como una señal para alinear tus pensamientos y decisiones inmediatas.`;
+            } else if (currentSpreadType === 3) {
+                narrative = `Tu lectura revela un flujo claro de transformación. En tus raíces pasadas, <strong>${drawnCards[0].name}</strong> sentó las bases emocionales y mentales. ` +
+                    `Actualmente, bajo la influencia de <strong>${drawnCards[1].name}</strong> ${drawnCards[1].isReversed ? '(invertida)' : ''}, estás llamado a integrar esta lección. ` +
+                    `Finalmente, la energía se desplaza hacia <strong>${drawnCards[2].name}</strong>, señalando el resultado natural de tus decisiones conscientes.`;
+            } else {
+                narrative = `Un panorama profundo se abre ante ti. Tu situación central está dominada por <strong>${drawnCards[0].name}</strong>, ` +
+                    `mientras que el reto a trascender reside en <strong>${drawnCards[1].name}</strong> ${drawnCards[1].isReversed ? '(invertida)' : ''}. ` +
+                    `Apoyándote en las enseñanzas de tu pasado (<strong>${drawnCards[2].name}</strong>), te encaminas hacia <strong>${drawnCards[3].name}</strong> ` +
+                    `para culminar en la resolución representada por <strong>${drawnCards[4].name}</strong>.`;
+            }
+
+            synthesisEl.innerHTML = narrative;
+
+            // Generar Cards de Detalles
+            detailsListEl.innerHTML = drawnCards.map(c => `
+                <div class="bg-night-900/60 p-4 rounded-xl border border-gold-500/20 space-y-2">
+                    <div class="flex justify-between items-center border-b border-gold-500/10 pb-2">
+                        <span class="text-xs font-heading text-gold-400 font-semibold">${c.positionName}</span>
+                        <span class="text-xs text-gold-300/80 font-heading">${c.name} ${c.isReversed ? '<span class="text-amber-400">(Invertida)</span>' : ''}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed font-body">
+                        ${c.isReversed ? c.reversed : c.upright}
+                    </p>
+                </div>
+            `).join('');
+
+            section.classList.remove('hidden');
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        /* GUARDAR / COPIAR LECTURA */
+        function copyReading() {
+            let summaryText = `✨ LECTURA DE TAROT MÍSTICO ✨\n`;
+            summaryText += `${SPREAD_CONFIGS[currentSpreadType].title}\n\n`;
+            
+            drawnCards.forEach(c => {
+                summaryText += `• ${c.positionName}: ${c.name} ${c.isReversed ? '(Invertida)' : ''}\n`;
+                summaryText += `  Significado: ${c.isReversed ? c.reversed : c.upright}\n\n`;
+            });
+
+            // Fallback execCommand para compatibilidad con iFrames
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = summaryText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            showToast();
+        }
+
+        /* MOSTRAR MENSAJE TOAST */
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            }, 3000);
+        }
+
+        /* REINICIAR A PANTALLA INICIAL */
+        function resetApp() {
+            document.getElementById('readingScreen').classList.add('hidden');
+            document.getElementById('readingScreen').classList.remove('flex');
+            document.getElementById('selectionScreen').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
